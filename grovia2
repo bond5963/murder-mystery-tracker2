@@ -1,0 +1,101 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Star } from "lucide-react";
+import Image from "next/image";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { fetchAmazonThumbnail } from "@/utils/fetchAmazonThumbnail";
+
+const dummyData = [
+  {
+    id: 1,
+    title: "マーダーミステリー：赤い霧の夜",
+    thumbnail: "https://m.media-amazon.com/images/I/81eZghP0e-L._AC_UL320_.jpg",
+    playedAt: "2025-05-03",
+    players: 5,
+    rating: 4
+  },
+  {
+    id: 2,
+    title: "マーダーミステリー：消えた遺産",
+    thumbnail: "https://m.media-amazon.com/images/I/71Iv-zyFLrL._AC_UL320_.jpg",
+    playedAt: "2025-04-15",
+    players: 6,
+    rating: 5
+  }
+];
+
+const StarRating = ({ rating, onChange }) => (
+  <div className="flex space-x-1">
+    {[...Array(5)].map((_, i) => (
+      <Star
+        key={i}
+        className={i < rating ? "fill-yellow-500 cursor-pointer" : "text-gray-300 cursor-pointer"}
+        size={16}
+        onClick={() => onChange?.(i + 1)}
+      />
+    ))}
+  </div>
+);
+
+export default function MurderMysteryTracker() {
+  const [games, setGames] = useState(dummyData);
+  const [title, setTitle] = useState("");
+  const [playedAt, setPlayedAt] = useState("");
+  const [players, setPlayers] = useState(0);
+
+  const addGame = async () => {
+    const thumbnail = await fetchAmazonThumbnail(title);
+    const newGame = {
+      id: games.length + 1,
+      title,
+      thumbnail: thumbnail || "https://via.placeholder.com/100x150?text=No+Image",
+      playedAt: playedAt || new Date().toISOString().split("T")[0],
+      players: Number(players) || 0,
+      rating: 0
+    };
+    setGames([newGame, ...games]);
+    setTitle("");
+    setPlayedAt("");
+    setPlayers(0);
+  };
+
+  const updateRating = (id, newRating) => {
+    setGames((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, rating: newRating } : g))
+    );
+  };
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">プレイ済みマーダーミステリー一覧</h1>
+
+      <div className="mb-6 space-y-2">
+        <Input placeholder="タイトル" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Input type="date" value={playedAt} onChange={(e) => setPlayedAt(e.target.value)} />
+        <Input type="number" placeholder="人数" value={players} onChange={(e) => setPlayers(e.target.value)} />
+        <Button onClick={addGame}>ゲームを追加</Button>
+      </div>
+
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+        {games.map((game) => (
+          <Card key={game.id} className="flex">
+            <Image
+              src={game.thumbnail}
+              alt={game.title}
+              width={100}
+              height={150}
+              className="rounded-l-xl object-cover"
+            />
+            <CardContent className="p-4 flex-1">
+              <h2 className="text-lg font-semibold">{game.title}</h2>
+              <p className="text-sm text-gray-600">プレイ日: {game.playedAt}</p>
+              <p className="text-sm text-gray-600">人数: {game.players}人</p>
+              <StarRating rating={game.rating} onChange={(r) => updateRating(game.id, r)} />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
