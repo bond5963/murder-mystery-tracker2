@@ -1,0 +1,27 @@
+<Input
+  type="number"
+  placeholder="人数"
+  value={players}
+  onChange={(e) => setPlayers(Number(e.target.value))}
+/>
+
+<Button type="button" onClick={addGame}>ゲームを追加</Button>
+
+const addGame = async () => {
+  console.log("addGame called");
+  // 一時的にAPI呼び出しを無効化してテスト
+  // const thumbnail = await fetchAmazonThumbnail(title);
+  const thumbnail = null;
+  const newGame = {
+    id: games.length + 1,
+    title,
+    thumbnail: thumbnail || "https://via.placeholder.com/100x150?text=No+Image",
+    playedAt: playedAt || new Date().toISOString().split("T")[0],
+    players: players || 0,
+    rating: 0
+  };
+  setGames([newGame, ...games]);
+  setTitle("");
+  setPlayedAt("");
+  setPlayers(0);
+};
